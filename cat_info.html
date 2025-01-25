@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neighborhood Cat Info</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .cat-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .cat-photo {
+            width: 300px;
+            height: auto;
+            border-radius: 10px;
+        }
+        .info {
+            margin: 15px 0;
+        }
+        .buttons {
+            margin: 20px 0;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .buttons button:hover {
+            opacity: 0.8;
+        }
+        .cat-food { background-color: #4CAF50; color: white; }
+        .cans { background-color: #2196F3; color: white; }
+        .others { background-color: #FF9800; color: white; }
+        .records {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .records ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .records li {
+            background-color: #e7e7e7;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .records li.deleted {
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+        .records button.delete-btn {
+            background-color: #f44336;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .records button.delete-btn:hover {
+            opacity: 0.8;
+        }
+        .contact {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .contact a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 600px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .close {
+            color: #aaa;
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        .show-complete {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .show-complete a {
+            color: #2196F3;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .show-complete a:hover {
+            text-decoration: underline;
+        }
+        .instruction {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="cat-container">
+    <h1>Meet Our Neighborhood Cat!</h1>
+    <img src="cat_photo.jpg" alt="Neighborhood Cat" class="cat-photo">
+    <div class="info">
+        <p><strong>Age:</strong> 3 years</p>
+        <p><strong>Gender:</strong> Female</p>
+    </div>
+    <div class="instruction">
+        <p>Please record your feeding by tapping the buttons below.</p>
+    </div>
+    <div class="buttons">
+        <button class="cat-food" onclick="recordFeeding('Cat Food')">Cat Food</button>
+        <button class="cans" onclick="recordFeeding('Cans')">Cans</button>
+        <button class="others" onclick="recordFeeding('Others')">Others</button>
+    </div>
+</div>
+
+<div class="records">
+    <h2>Latest Feeding Records</h2>
+    <ul id="recordList">
+        <!-- Feeding records will appear here -->
+    </ul>
+</div>
+
+<div class="show-complete">
+    <a onclick="openModal()">Show Complete Records</a>
+</div>
+
+<div class="contact">
+    <p>For more information, contact us at: <a href="mailto:your-email@example.com">your-email@example.com</a></p>
+</div>
+
+<!-- The Modal for Complete Records -->
+<div id="completeRecordsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Complete Feeding Records</h2>
+        <ul id="completeRecordList">
+            <!-- Complete feeding records will appear here -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Function to generate a unique ID
+    function generateId() {
+        return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    }
+
+    // Function to add a feeding record
+    function recordFeeding(type) {
+        const currentTime = new Date();
+        const formattedTime = currentTime.toLocaleString();
+        const newRecord = {
+            id: generateId(),
+            type: type,
+            time: formattedTime,
+            deleted: false
+        };
+
+        // Retrieve existing records
+        let records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
+        records.unshift(newRecord); // Add to the beginning
+        localStorage.setItem('feedingRecords', JSON.stringify(records));
+
+        // Refresh the displayed records
+        loadRecords();
+    }
+
+    // Function to delete a feeding record
+    function deleteRecord(id) {
+        let records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
+        records = records.map(record => {
+            if (record.id === id) {
+                return { ...record, deleted: true };
+            }
+            return record;
+        });
+        localStorage.setItem('feedingRecords', JSON.stringify(records));
+        loadRecords();
+    }
+
+    // Function to load and display the latest 10 non-deleted records
+    function loadRecords() {
+        const recordList = document.getElementById('recordList');
+        recordList.innerHTML = '';
+        const records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
+
+        // Filter non-deleted records and get the latest 10
+        const latestRecords = records.filter(record => !record.deleted).slice(0, 10);
+
+        latestRecords.forEach(record => {
+            const listItem = document.createElement('li');
+
+            const recordText = `Someone fed ${record.type} at ${record.time}`;
+            const textSpan = document.createElement('span');
+            textSpan.textContent = recordText;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.onclick = () => deleteRecord(record.id);
+
+            listItem.appendChild(textSpan);
+            listItem.appendChild(deleteBtn);
+            recordList.appendChild(listItem);
+        });
+    }
+
+    // Function to load and display all records in the modal
+    function loadCompleteRecords() {
+        const completeRecordList = document.getElementById('completeRecordList');
+        completeRecordList.innerHTML = '';
+        const records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
+
+        records.forEach(record => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `someone fed ${record.type} at ${record.time}` + (record.deleted ? ' (deleted)' : '');
+            if (record.deleted) {
+                listItem.classList.add('deleted');
+            }
+            completeRecordList.appendChild(listItem);
+        });
+    }
+
+    // Functions to handle modal
+    function openModal() {
+        const modal = document.getElementById('completeRecordsModal');
+        modal.style.display = 'block';
+        loadCompleteRecords();
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('completeRecordsModal');
+        modal.style.display = 'none';
+    }
+
+    // Close the modal when clicking outside of the modal content
+    window.onclick = function(event) {
+        const modal = document.getElementById('completeRecordsModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Initial load of records
+    window.onload = loadRecords;
+</script>
+
+</body>
+</html>
