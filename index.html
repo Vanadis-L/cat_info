@@ -186,7 +186,7 @@
     <h1>Meet Our Neighborhood Cat!</h1>
     <img src="cat_photo.jpg" alt="Neighborhood Cat" class="cat-photo">
     <div class="info">
-        <p><strong>Age:</strong> Unkown</p>
+        <p><strong>Age:</strong> Unknown</p>
         <p><strong>Gender:</strong> Male</p>
     </div>
     <div class="instruction">
@@ -211,7 +211,7 @@
 </div>
 
 <div class="contact">
-    <p>For more information, contact us at: <a href="mailto:your-email@example.com">your-email@example.com</a></p>
+    <p>For more information, contact us at: <a href="mailto:Vanadis_L@outlook.com">Vanadis_L@outlook.com</a></p>
 </div>
 
 <!-- The Modal for Complete Records -->
@@ -265,10 +265,19 @@
       }, 3000);
   }
 
-  // Function to add a feeding record to Firestore
+  // Function to add a feeding record to Firestore with formatted time
   async function recordFeeding(type) {
       const currentTime = new Date();
-      const formattedTime = currentTime.toLocaleString();
+      const options = {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric',
+          hour12: true
+      };
+      const formattedTime = currentTime.toLocaleString('en-GB', options); // '26/01/2025, 5:58:41 PM'
 
       try {
           const docRef = await addDoc(collection(db, "feedingRecords"), {
