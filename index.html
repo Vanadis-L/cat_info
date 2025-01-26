@@ -4,8 +4,177 @@
     <meta charset="UTF-8">
     <title>Neighborhood Cat Info</title>
     <style>
-        /* [Your existing CSS styles here] */
-        /* ... */
+        /* Existing Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .cat-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .cat-photo {
+            width: 300px;
+            height: auto;
+            border-radius: 10px;
+        }
+        .info {
+            margin: 15px 0;
+        }
+        .buttons {
+            margin: 20px 0;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .buttons button:hover {
+            opacity: 0.9;
+        }
+        .cat-food { background-color: #4CAF50; color: white; }
+        .cans { background-color: #2196F3; color: white; }
+        .others { background-color: #FF9800; color: white; }
+        .records {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .records ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .records li {
+            background-color: #e7e7e7;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .records li.deleted {
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+        .records button.delete-btn {
+            background-color: #f44336;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        .records button.delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .contact {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .contact a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 600px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .close {
+            color: #aaa;
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        .show-complete {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        .show-complete a {
+            color: #2196F3;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .show-complete a:hover {
+            text-decoration: underline;
+        }
+        .instruction {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50; /* Green for success by default */
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            font-size: 16px;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .notification.error {
+            background-color: #f44336; /* Red for errors */
+        }
+
+        .notification.info {
+            background-color: #2196F3; /* Blue for informational messages */
+        }
     </style>
 </head>
 <body>
@@ -38,7 +207,7 @@
 </div>
 
 <div class="show-complete">
-    <a onclick="openModal()">Show Complete Records</a>
+    <a href="#" onclick="openModal()">Show Complete Records</a>
 </div>
 
 <div class="contact">
@@ -221,7 +390,7 @@
       }
   }
 
-  // Expose functions to the global scope
+  // Expose functions to the global scope to allow inline onclicks to work
   window.recordFeeding = recordFeeding;
   window.deleteRecord = deleteRecord;
   window.openModal = openModal;
