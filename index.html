@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Neighborhood Cat Info</title>
     <style>
+        /* Existing Styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f2f2f2;
@@ -189,110 +190,145 @@
     </div>
 </div>
 
-<script>
-    // Function to generate a unique ID
-    function generateId() {
-        return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
-    }
+<!-- Firebase SDK and Initialization -->
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
 
-    // Function to add a feeding record
-    function recordFeeding(type) {
-        const currentTime = new Date();
-        const formattedTime = currentTime.toLocaleString();
-        const newRecord = {
-            id: generateId(),
-            type: type,
-            time: formattedTime,
-            deleted: false
-        };
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBR1upksUuQxY5OaIjb_yPDHWi7TzhhTr0",
+    authDomain: "neighborhoodcatinfo.firebaseapp.com",
+    projectId: "neighborhoodcatinfo",
+    storageBucket: "neighborhoodcatinfo.firebasestorage.app",
+    messagingSenderId: "661276936276",
+    appId: "1:661276936276:web:5d1993ae59758877c8c5c1",
+    measurementId: "G-BK2FHSD2QM"
+  };
 
-        // Retrieve existing records
-        let records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
-        records.unshift(newRecord); // Add to the beginning
-        localStorage.setItem('feedingRecords', JSON.stringify(records));
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-        // Refresh the displayed records
-        loadRecords();
-    }
+  // Function to add a feeding record to Firestore
+  async function recordFeeding(type) {
+      const currentTime = new Date();
+      const formattedTime = currentTime.toLocaleString();
 
-    // Function to delete a feeding record
-    function deleteRecord(id) {
-        let records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
-        records = records.map(record => {
-            if (record.id === id) {
-                return { ...record, deleted: true };
-            }
-            return record;
-        });
-        localStorage.setItem('feedingRecords', JSON.stringify(records));
-        loadRecords();
-    }
+      try {
+          const docRef = await addDoc(collection(db, "feedingRecords"), {
+              type: type,
+              time: formattedTime,
+              deleted: false
+          });
+          console.log("Feeding record added with ID: ", docRef.id);
+          loadRecords(); // Refresh the displayed records
+      } catch (e) {
+          console.error("Error adding document: ", e);
+      }
+  }
 
-    // Function to load and display the latest 10 non-deleted records
-    function loadRecords() {
-        const recordList = document.getElementById('recordList');
-        recordList.innerHTML = '';
-        const records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
+  // Function to delete (mark as deleted) a feeding record in Firestore
+  async function deleteRecord(id) {
+      const recordRef = doc(db, "feedingRecords", id);
+      try {
+          await updateDoc(recordRef, {
+              deleted: true
+          });
+          console.log("Feeding record marked as deleted.");
+          loadRecords(); // Refresh the latest records display
+      } catch (e) {
+          console.error("Error updating document: ", e);
+      }
+  }
 
-        // Filter non-deleted records and get the latest 10
-        const latestRecords = records.filter(record => !record.deleted).slice(0, 10);
+  // Function to load and display the latest 10 non-deleted records from Firestore
+  async function loadRecords() {
+      const recordList = document.getElementById('recordList');
+      recordList.innerHTML = '';
 
-        latestRecords.forEach(record => {
-            const listItem = document.createElement('li');
+      const q = query(
+          collection(db, "feedingRecords"),
+          where("deleted", "==", false),
+          orderBy("time", "desc"),
+          limit(10)
+      );
 
-            const recordText = `Someone fed ${record.type} at ${record.time}`;
-            const textSpan = document.createElement('span');
-            textSpan.textContent = recordText;
+      try {
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((docSnapshot) => {
+              const record = docSnapshot.data();
+              const listItem = document.createElement('li');
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.className = 'delete-btn';
-            deleteBtn.onclick = () => deleteRecord(record.id);
+              const recordText = `Someone fed ${record.type} at ${record.time}`;
+              const textSpan = document.createElement('span');
+              textSpan.textContent = recordText;
 
-            listItem.appendChild(textSpan);
-            listItem.appendChild(deleteBtn);
-            recordList.appendChild(listItem);
-        });
-    }
+              const deleteBtn = document.createElement('button');
+              deleteBtn.textContent = 'Delete';
+              deleteBtn.className = 'delete-btn';
+              deleteBtn.onclick = () => deleteRecord(docSnapshot.id);
 
-    // Function to load and display all records in the modal
-    function loadCompleteRecords() {
-        const completeRecordList = document.getElementById('completeRecordList');
-        completeRecordList.innerHTML = '';
-        const records = JSON.parse(localStorage.getItem('feedingRecords')) || [];
+              listItem.appendChild(textSpan);
+              listItem.appendChild(deleteBtn);
+              recordList.appendChild(listItem);
+          });
+      } catch (e) {
+          console.error("Error getting documents: ", e);
+      }
+  }
 
-        records.forEach(record => {
-            const listItem = document.createElement('li');
-            listItem.textContent = `someone fed ${record.type} at ${record.time}` + (record.deleted ? ' (deleted)' : '');
-            if (record.deleted) {
-                listItem.classList.add('deleted');
-            }
-            completeRecordList.appendChild(listItem);
-        });
-    }
+  // Function to load and display all records in the modal from Firestore
+  async function loadCompleteRecords() {
+      const completeRecordList = document.getElementById('completeRecordList');
+      completeRecordList.innerHTML = '';
 
-    // Functions to handle modal
-    function openModal() {
-        const modal = document.getElementById('completeRecordsModal');
-        modal.style.display = 'block';
-        loadCompleteRecords();
-    }
+      const q = query(
+          collection(db, "feedingRecords"),
+          orderBy("time", "desc")
+      );
 
-    function closeModal() {
-        const modal = document.getElementById('completeRecordsModal');
-        modal.style.display = 'none';
-    }
+      try {
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((docSnapshot) => {
+              const record = docSnapshot.data();
+              const listItem = document.createElement('li');
+              listItem.textContent = `Someone fed ${record.type} at ${record.time}` + (record.deleted ? ' (deleted)' : '');
+              if (record.deleted) {
+                  listItem.classList.add('deleted');
+              }
+              completeRecordList.appendChild(listItem);
+          });
+      } catch (e) {
+          console.error("Error getting documents: ", e);
+      }
+  }
 
-    // Close the modal when clicking outside of the modal content
-    window.onclick = function(event) {
-        const modal = document.getElementById('completeRecordsModal');
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    }
+  // Functions to handle modal
+  function openModal() {
+      const modal = document.getElementById('completeRecordsModal');
+      modal.style.display = 'block';
+      loadCompleteRecords();
+  }
 
-    // Initial load of records
-    window.onload = loadRecords;
+  function closeModal() {
+      const modal = document.getElementById('completeRecordsModal');
+      modal.style.display = 'none';
+  }
+
+  // Close the modal when clicking outside of the modal content
+  window.onclick = function(event) {
+      const modal = document.getElementById('completeRecordsModal');
+      if (event.target == modal) {
+          modal.style.display = 'none';
+      }
+  }
+
+  // Initial load of records
+  window.onload = loadRecords;
 </script>
 
 </body>
