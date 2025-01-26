@@ -277,7 +277,10 @@
           second: 'numeric',
           hour12: true
       };
-      const formattedTime = currentTime.toLocaleString('en-GB', options); // '26/01/2025, 5:58:41 PM'
+      let formattedTime = currentTime.toLocaleString('en-GB', options); // '26/01/2025, 5:58:41 PM'
+
+      // Ensure AM/PM is capitalized
+      formattedTime = formattedTime.replace(/am|pm/i, match => match.toUpperCase());
 
       try {
           const docRef = await addDoc(collection(db, "feedingRecords"), {
