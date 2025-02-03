@@ -3,6 +3,7 @@
   import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
 
+
   // Your Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyBR1upksUuQxY5OaIjb_yPDHWi7TzhhTr0",
@@ -92,10 +93,10 @@
       const q = query(
           collection(db, "feedingRecords"),
           where("deleted", "==", false),
+          where("time", "<", "21/01/2025, 7:04:22 PM"),
           orderBy("time", "desc"),
           limit(10)
       );
-
       // Set up real-time listener
       onSnapshot(q, (querySnapshot) => {
           recordList.innerHTML = ''; // Clear existing records each time there's a change
@@ -129,7 +130,7 @@
 
       const q = query(
           collection(db, "feedingRecords"),
-          orderBy("time", "desc")
+          orderBy("time", "asc")
       );
 
       // Set up real-time listener
